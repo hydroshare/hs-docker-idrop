@@ -10,8 +10,8 @@ IDROP_IRODS_SECRETS=$2
 APPSTACK_PATH=${PWD}'/appstack'
 
 # move config files into place
-echo "*** Copy idrop-config.yaml and irods-config.yaml into place ***"
-yes | cp irods-config.yaml appstack/setup-irods-icat-v4.1.0/irods-config.yaml
+echo "*** Copy idrop-config.yaml into place ***"
+#yes | cp irods-config.yaml appstack/setup-irods-icat-v4.1.0/irods-config.yaml
 yes | cp idrop-config.yaml appstack/idrop-web-v2.1.0/idrop-config.yaml
 
 echo "*** update github submodules ***"
@@ -26,7 +26,7 @@ ${APPSTACK_PATH}/appstack-build.sh ${APPSTACK_PATH}
 
 # Launch data volume as docker container data
 echo "*** docker run appstack-data as data ***"
-docker run -d --name hs-irods-data -v /opt/java -v /opt/tomcat -v /srv/log:/var/log -v /root/.secret -it appstack-data
+docker run -d --name hs-idrop-data -v /opt/java -v /opt/tomcat -v /srv/log:/var/log -v /root/.secret -it appstack-data
 sleep 3s
 
 ## Setup postgreql database
@@ -55,11 +55,10 @@ sleep 3s
 
 # Setup tomcat for iDrop Web
 echo "*** docker run setup-tomcat-v8.0.22 ***"
-docker run --rm --volumes-from hs-irods-data -it setup-tomcat-v8.0.22
+docker run --rm --volumes-from hs-idrop-data -it setup-tomcat-v8.0.22
 
 # Launch iDrop Web2
 echo "*** docker run idrop-web-v2.1.0 as hs-irods-idrop ***"
-docker run -d --name hs-irods-idrop --volumes-from hs-irods-data -p 8080:8080 --link hs-irods-icat:hs-irods-icat \
-    idrop-web-v2.1.0 ${IDROP_IP_ADDR} ${IDROP_IRODS_SECRETS}
+docker run -d --name hs-idrop --volumes-from hs-idrop-data -p 8080:8080 idrop-web-v2.1.0 ${IDROP_IP_ADDR} ${IDROP_IRODS_SECRETS}
 
 echo "*** FINISHED SCRIPT appstack-run-irods.sh ***"
